@@ -71,7 +71,10 @@ class TechPackService:
             "user_id": user_id, "pack_status": "generating",
         }).execute()
 
-        prompt = render_prompt("techpack/techpack_generation.jinja2", {"spec": spec_row.data["spec_json"]})
+        prompt = render_prompt("techpack/techpack_generation.jinja2", {
+            "spec": spec_row.data["spec_json"],
+            "spec_version": "v1.0.0",
+        })
         techpack_json = await self._provider.generate_structured(prompt, TECHPACK_SCHEMA)
 
         pdf_bytes = self._build_pdf(techpack_json)
@@ -89,7 +92,7 @@ class TechPackService:
             "pdf_storage_path": storage_path,
             "pdf_url": pdf_url,
             "pack_status": "complete",
-        }).eq("id", row_id).execute()
+        }).eq("id", row_id).select("*").execute()
 
         return result.data[0]
 
