@@ -15,7 +15,7 @@ import { cn } from "@/lib/utils";
 export function SketchUploader({ project }: { project: ProjectFull }) {
   const t = useTranslations("project");
   const { token } = useAuth();
-  const { setCurrentSpec, setActiveStep } = useProjectStore();
+  const { setCurrentSpecRow, setActiveStep } = useProjectStore();
   const inputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [status, setStatus] = useState<"idle" | "uploading" | "analyzing" | "done" | "error">("idle");
@@ -43,7 +43,7 @@ export function SketchUploader({ project }: { project: ProjectFull }) {
       return;
     }
 
-    setCurrentSpec(specResult.data!.spec_json as any);
+    setCurrentSpecRow(specResult.data!);
     setStatus("done");
     setTimeout(() => setActiveStep("spec"), 1500);
   };
