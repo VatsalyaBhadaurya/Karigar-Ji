@@ -4,7 +4,8 @@ import json
 import logging
 from typing import Any
 
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 
 from app.ai.base import BaseVisionProvider, BaseTextProvider
 from app.ai.retry import ai_retry
@@ -15,11 +16,8 @@ logger = logging.getLogger(__name__)
 
 class GeminiProvider(BaseVisionProvider, BaseTextProvider):
     def __init__(self, api_key: str, model: str = "gemini-2.5-flash") -> None:
-        genai.configure(api_key=api_key)
+        self._client = genai.Client(api_key=api_key)
         self._model_name = model
-
-    def _model(self) -> genai.GenerativeModel:
-        return genai.GenerativeModel(self._model_name)
 
     @ai_retry
     async def analyze_garment(
@@ -36,13 +34,13 @@ class GeminiProvider(BaseVisionProvider, BaseTextProvider):
                 image_bytes = resp.content
                 mime_type = resp.headers.get("content-type", "image/jpeg").split(";")[0]
 
-            model = self._model()
-            response = model.generate_content(
+            response = await self._client.aio.models.generate_content(
+                model=self._model_name,
                 contents=[
-                    {"mime_type": mime_type, "data": image_bytes},
+                    types.Part.from_bytes(data=image_bytes, mime_type=mime_type),
                     prompt,
                 ],
-                generation_config=genai.GenerationConfig(
+                config=types.GenerateContentConfig(
                     response_mime_type="application/json",
                     response_schema=response_schema,
                     temperature=0.1,
@@ -60,10 +58,10 @@ class GeminiProvider(BaseVisionProvider, BaseTextProvider):
         response_schema: dict[str, Any],
     ) -> dict[str, Any]:
         try:
-            model = self._model()
-            response = model.generate_content(
+            response = await self._client.aio.models.generate_content(
+                model=self._model_name,
                 contents=prompt,
-                generation_config=genai.GenerationConfig(
+                config=types.GenerateContentConfig(
                     response_mime_type="application/json",
                     response_schema=response_schema,
                     temperature=0.2,

@@ -33,6 +33,7 @@ app = FastAPI(
     redoc_url="/redoc" if settings.APP_ENV != "prod" else None,
 )
 
+app.add_middleware(LoggingMiddleware)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[settings.FRONTEND_URL],
@@ -40,7 +41,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-app.add_middleware(LoggingMiddleware)
 
 app.include_router(v1_router, prefix="/api/v1")
 
