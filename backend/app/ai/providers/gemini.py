@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 import json
 import logging
 from typing import Any
@@ -12,6 +13,39 @@ from app.ai.retry import ai_retry
 from app.exceptions import AIProviderError
 
 logger = logging.getLogger(__name__)
+
+_UNSUPPORTED_KEYS = {"additionalProperties", "title", "$schema"}
+
+
+def _clean_schema(schema: dict[str, Any]) -> dict[str, Any]:
+    """
+    Prepare a Pydantic-generated JSON Schema for Gemini Developer API:
+    - Resolve $ref/$defs (inline nested model definitions)
+    - Unwrap Optional[X] = anyOf[X, null] → just X (Gemini rejects anyOf)
+    - Strip unsupported keys: additionalProperties, title, $schema
+    """
+    schema = copy.deepcopy(schema)
+    defs = schema.pop("$defs", {})
+
+    def _resolve(node: Any) -> Any:
+        if isinstance(node, dict):
+            if "$ref" in node:
+                ref_name = node["$ref"].split("/")[-1]
+                return _resolve(defs.get(ref_name, {}))
+            # Unwrap Optional[X]: anyOf with exactly one non-null branch
+            if "anyOf" in node:
+                non_null = [s for s in node["anyOf"] if s != {"type": "null"}]
+                if len(non_null) == 1:
+                    resolved = _resolve(non_null[0])
+                    extras = {k: _resolve(v) for k, v in node.items()
+                              if k not in _UNSUPPORTED_KEYS and k != "anyOf"}
+                    return {**resolved, **extras}
+            return {k: _resolve(v) for k, v in node.items() if k not in _UNSUPPORTED_KEYS}
+        if isinstance(node, list):
+            return [_resolve(i) for i in node]
+        return node
+
+    return _resolve(schema)
 
 
 class GeminiProvider(BaseVisionProvider, BaseTextProvider):
@@ -42,7 +76,7 @@ class GeminiProvider(BaseVisionProvider, BaseTextProvider):
                 ],
                 config=types.GenerateContentConfig(
                     response_mime_type="application/json",
-                    response_schema=response_schema,
+                    response_schema=_clean_schema(response_schema),
                     temperature=0.1,
                 ),
             )
@@ -63,7 +97,7 @@ class GeminiProvider(BaseVisionProvider, BaseTextProvider):
                 contents=prompt,
                 config=types.GenerateContentConfig(
                     response_mime_type="application/json",
-                    response_schema=response_schema,
+                    response_schema=_clean_schema(response_schema),
                     temperature=0.2,
                 ),
             )
