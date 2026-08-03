@@ -19,6 +19,7 @@ export function GarmentSpecEditor({ project }: { project: ProjectFull }) {
   const { currentSpec, setCurrentSpec } = useProjectStore();
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [saveError, setSaveError] = useState("");
 
   const specRow = project.garment_specs?.find((s) => s.is_current);
   const spec: GarmentSpec | null = currentSpec ?? (specRow?.spec_json as unknown as GarmentSpec ?? null);
@@ -33,13 +34,17 @@ export function GarmentSpecEditor({ project }: { project: ProjectFull }) {
   }
 
   const handleSave = async () => {
-    if (!token || !specRow) return;
+    if (!token) { setSaveError("Not authenticated"); return; }
+    if (!specRow) { setSaveError("No spec found — analyze a sketch first"); return; }
     setSaving(true);
+    setSaveError("");
     const result = await updateSpec(specRow.id, { spec_json: spec }, token);
     if (result.data) {
       setCurrentSpec(result.data.spec_json as GarmentSpec);
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
+    } else {
+      setSaveError(result.error?.message ?? "Save failed");
     }
     setSaving(false);
   };
@@ -50,18 +55,23 @@ export function GarmentSpecEditor({ project }: { project: ProjectFull }) {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold text-white">{t("title")}</h2>
-        <div className="flex items-center gap-3">
-          {spec.metadata?.confidence !== undefined && (
-            <Badge className="bg-slate-700 text-slate-300 text-xs">
-              {t("confidence")}: {Math.round(spec.metadata.confidence * 100)}%
-            </Badge>
-          )}
-          <Button onClick={handleSave} disabled={saving} size="sm" className="bg-white text-slate-900 hover:bg-slate-100">
-            {saved ? "Saved!" : saving ? "Saving..." : t("saveSpec")}
-          </Button>
+      <div>
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-semibold text-white">{t("title")}</h2>
+          <div className="flex items-center gap-3">
+            {spec.metadata?.confidence !== undefined && (
+              <Badge className="bg-slate-700 text-slate-300 text-xs">
+                {t("confidence")}: {Math.round(spec.metadata.confidence * 100)}%
+              </Badge>
+            )}
+            <Button onClick={handleSave} disabled={saving} size="sm" className="bg-white text-slate-900 hover:bg-slate-100">
+              {saved ? "Saved!" : saving ? "Saving..." : t("saveSpec")}
+            </Button>
+          </div>
         </div>
+        {saveError && (
+          <p className="text-red-400 text-xs mt-2 text-right">{saveError}</p>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

@@ -126,6 +126,7 @@ class VisionService:
             .update(updates)
             .eq("id", spec_id)
             .eq("user_id", user_id)
+            .select("*")
             .execute()
         )
         if not result.data:
