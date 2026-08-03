@@ -76,7 +76,7 @@ class VisionService:
             "fit": spec.fit,
             "spec_json": spec.model_dump(mode="json"),
             "ai_confidence": spec.metadata.confidence,
-            "ai_provider": "gemini-2.5-flash",
+            "ai_provider": "gemini-2.0-flash",
             "prompt_version": PROMPT_VERSION,
             "raw_ai_response": raw_response,
         }

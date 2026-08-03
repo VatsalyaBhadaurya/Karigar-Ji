@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import asyncio
-import base64
 import logging
 from typing import Any
 
@@ -13,22 +11,20 @@ from app.exceptions import AIProviderError
 
 logger = logging.getLogger(__name__)
 
-HF_INFERENCE_URL = "https://api-inference.huggingface.co/models/{model}"
-# FLUX.1-Kontext also exposes a dedicated Inference Endpoint format:
-HF_KONTEXT_URL = "https://api-inference.huggingface.co/models/black-forest-labs/FLUX.1-Kontext-dev"
+# HF router → together provider (OpenAI-compatible images API)
+HF_TOGETHER_URL = "https://router.huggingface.co/together/v1/images/generations"
 
 
 class HuggingFaceRenderProvider(BaseRenderProvider):
     """
-    FLUX.1-Kontext-dev via HuggingFace Inference API.
-    Free tier: https://huggingface.co/settings/tokens
-    Rate limits apply on free tier. Model may queue — waits handled by retry.
+    Text-to-image via HuggingFace router → Together AI provider.
+    Uses OpenAI-compatible images/generations endpoint.
+    Supported models: black-forest-labs/FLUX.1-schnell
     """
 
-    def __init__(self, hf_token: str, model: str = "black-forest-labs/FLUX.1-Kontext-dev") -> None:
+    def __init__(self, hf_token: str, model: str = "black-forest-labs/FLUX.1-schnell") -> None:
         self._token = hf_token
         self._model = model
-        self._url = HF_INFERENCE_URL.format(model=model)
 
     @ai_retry
     async def generate_render(
@@ -38,43 +34,30 @@ class HuggingFaceRenderProvider(BaseRenderProvider):
         params: dict[str, Any],
     ) -> str:
         """
-        Call HuggingFace Inference API for FLUX.1-Kontext-dev.
-        Returns a data URL (base64) or raises AIProviderError.
-
-        FLUX.1-Kontext supports:
-          - text-to-image: { "inputs": "prompt" }
-          - image-to-image: { "inputs": "prompt", "image": "<base64>" }
+        Generate an image via HF router → together.
+        Returns a public URL (together hosts it for ~1 hour).
+        reference_image_url is accepted but ignored — FLUX.1-schnell is text-to-image only.
         """
         headers = {
             "Authorization": f"Bearer {self._token}",
             "Content-Type": "application/json",
-            "X-Wait-For-Model": "true",  # wait if model is loading, don't 503
         }
 
         payload: dict[str, Any] = {
-            "inputs": prompt,
-            "parameters": {
-                "num_inference_steps": params.get("steps", 28),
-                "guidance_scale": params.get("guidance_scale", 3.5),
-                "width": params.get("width", 768),
-                "height": params.get("height", 1024),
-            },
+            "model": self._model,
+            "prompt": prompt,
+            "n": 1,
+            "width": params.get("width", 768),
+            "height": params.get("height", 1024),
         }
 
-        # If a reference image is provided (for Kontext image-to-image editing)
-        if reference_image_url:
-            image_b64 = await self._fetch_image_as_base64(reference_image_url)
-            if image_b64:
-                payload["image"] = image_b64
+        steps = params.get("steps")
+        if steps:
+            payload["num_inference_steps"] = steps
 
         try:
             async with httpx.AsyncClient(timeout=120.0) as client:
-                response = await client.post(self._url, headers=headers, json=payload)
-
-                if response.status_code == 503:
-                    # Model is loading — the retry decorator will handle it
-                    estimated = response.json().get("estimated_time", "unknown")
-                    raise AIProviderError("HuggingFace", f"Model loading, estimated wait: {estimated}s")
+                response = await client.post(HF_TOGETHER_URL, headers=headers, json=payload)
 
                 if response.status_code == 429:
                     raise AIProviderError("HuggingFace", "Rate limit reached. Retry after cooldown.")
@@ -83,29 +66,20 @@ class HuggingFaceRenderProvider(BaseRenderProvider):
                     detail = response.text[:300]
                     raise AIProviderError("HuggingFace", f"HTTP {response.status_code}: {detail}")
 
-                # HF Inference API returns raw image bytes for image models
-                image_bytes = response.content
-                if not image_bytes:
-                    raise AIProviderError("HuggingFace", "Empty image response")
+                data = response.json()
+                items = data.get("data", [])
+                if not items:
+                    raise AIProviderError("HuggingFace", "Empty response — no image data returned")
 
-                # Return as data URL so the render service can store it
-                b64 = base64.b64encode(image_bytes).decode()
-                content_type = response.headers.get("content-type", "image/jpeg").split(";")[0]
-                return f"data:{content_type};base64,{b64}"
+                # together returns a URL; render_service._decode_render_result handles both URLs and data URLs
+                url = items[0].get("url") or items[0].get("b64_json")
+                if not url:
+                    raise AIProviderError("HuggingFace", f"No url/b64_json in response: {data}")
+
+                return url
 
         except AIProviderError:
             raise
         except Exception as exc:
             logger.exception("HuggingFace render failed")
             raise AIProviderError("HuggingFace", str(exc)) from exc
-
-    async def _fetch_image_as_base64(self, image_url: str) -> str | None:
-        """Download an image URL and return as base64 string."""
-        try:
-            async with httpx.AsyncClient(timeout=30.0) as client:
-                resp = await client.get(image_url)
-                if resp.is_success:
-                    return base64.b64encode(resp.content).decode()
-        except Exception:
-            logger.warning("Could not fetch reference image: %s", image_url)
-        return None

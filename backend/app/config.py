@@ -18,7 +18,7 @@ class Settings(BaseSettings):
 
     # AI: HuggingFace (FLUX.1-Kontext-dev)
     HF_TOKEN: str = ""
-    HF_FLUX_MODEL: str = "black-forest-labs/FLUX.1-Kontext-dev"
+    HF_FLUX_MODEL: str = "black-forest-labs/FLUX.1-schnell"
 
     # App
     APP_ENV: Literal["dev", "staging", "prod"] = "dev"
