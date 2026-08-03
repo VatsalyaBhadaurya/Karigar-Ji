@@ -14,7 +14,7 @@ class Settings(BaseSettings):
 
     # AI: Gemini
     GEMINI_API_KEY: str = ""
-    GEMINI_MODEL: str = "gemini-2.0-flash"
+    GEMINI_MODEL: str = "gemini-flash-latest"
 
     # AI: HuggingFace (FLUX.1-Kontext-dev)
     HF_TOKEN: str = ""
