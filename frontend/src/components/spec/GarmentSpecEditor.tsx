@@ -71,7 +71,8 @@ export function GarmentSpecEditor({ project }: { project: ProjectFull }) {
   };
 
   const updateMeasurement = (key: string, value: string) => {
-    const m = { ...(spec.measurements ?? { unit: "cm" }), [key]: value === "" ? undefined : Number(value) };
+    const parsed = key === "unit" ? value : (value === "" ? undefined : Number(value));
+    const m = { ...(spec.measurements ?? { unit: "cm" }), [key]: parsed };
     update("measurements", m);
   };
 

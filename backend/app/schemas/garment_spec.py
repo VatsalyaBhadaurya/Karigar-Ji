@@ -11,7 +11,7 @@ class Measurements(BaseModel):
     length: Optional[float] = None
     sleeve_length: Optional[float] = None
     shoulder_width: Optional[float] = None
-    unit: str = "cm"
+    unit: Optional[str] = "cm"
 
 
 class CollarSpec(BaseModel):
