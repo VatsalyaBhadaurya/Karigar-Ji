@@ -1,0 +1,132 @@
+{
+  "common": {
+    "appName": "कारीगर जी",
+    "tagline": "AI-संचालित फैशन डिज़ाइन प्लेटफ़ॉर्म",
+    "loading": "लोड हो रहा है...",
+    "error": "कुछ गलत हो गया",
+    "save": "सहेजें",
+    "cancel": "रद्द करें",
+    "delete": "हटाएं",
+    "edit": "संपादित करें",
+    "download": "डाउनलोड",
+    "share": "शेयर करें",
+    "back": "वापस",
+    "next": "आगे",
+    "generate": "बनाएं",
+    "regenerate": "फिर से बनाएं",
+    "viewAll": "सब देखें"
+  },
+  "nav": {
+    "dashboard": "डैशबोर्ड",
+    "newProject": "नया प्रोजेक्ट",
+    "settings": "सेटिंग्स",
+    "signOut": "साइन आउट"
+  },
+  "auth": {
+    "login": "साइन इन",
+    "signup": "अकाउंट बनाएं",
+    "email": "ईमेल",
+    "password": "पासवर्ड",
+    "fullName": "पूरा नाम",
+    "forgotPassword": "पासवर्ड भूल गए?",
+    "noAccount": "अकाउंट नहीं है?",
+    "hasAccount": "पहले से अकाउंट है?",
+    "orContinueWith": "या इससे जारी रखें",
+    "google": "Google से जारी रखें",
+    "loginSuccess": "वापस स्वागत है!",
+    "signupSuccess": "अकाउंट बन गया!"
+  },
+  "dashboard": {
+    "title": "मेरे प्रोजेक्ट",
+    "empty": "अभी कोई प्रोजेक्ट नहीं",
+    "emptyDescription": "शुरू करने के लिए स्केच अपलोड करें",
+    "createFirst": "पहला प्रोजेक्ट बनाएं",
+    "newProject": "नया प्रोजेक्ट",
+    "lastUpdated": "अंतिम अपडेट",
+    "status": {
+      "draft": "ड्राफ्ट",
+      "analyzing": "विश्लेषण हो रहा है",
+      "spec_ready": "स्पेक तैयार",
+      "rendering": "रेंडर हो रहा है",
+      "complete": "पूर्ण",
+      "error": "त्रुटि"
+    }
+  },
+  "project": {
+    "name": "प्रोजेक्ट का नाम",
+    "description": "विवरण",
+    "create": "प्रोजेक्ट बनाएं",
+    "upload": "स्केच अपलोड करें",
+    "uploadHint": "खींचें और छोड़ें या क्लिक करें। JPEG, PNG, WEBP, PDF — 20MB तक",
+    "analyzing": "AI आपका स्केच विश्लेषण कर रहा है...",
+    "steps": {
+      "upload": "अपलोड",
+      "spec": "गारमेंट स्पेक",
+      "renders": "रेंडर",
+      "techpack": "टेक पैक",
+      "pattern": "पैटर्न",
+      "export": "निर्यात"
+    }
+  },
+  "spec": {
+    "title": "गारमेंट विशिष्टता",
+    "garmentType": "परिधान प्रकार",
+    "silhouette": "सिल्हूट",
+    "neckline": "गला",
+    "sleeveType": "आस्तीन प्रकार",
+    "fit": "फिट",
+    "colors": "रंग",
+    "fabric": "सुझाया गया कपड़ा",
+    "measurements": "माप",
+    "embroidery": "कढ़ाई",
+    "constructionNotes": "निर्माण नोट्स",
+    "confidence": "AI आत्मविश्वास",
+    "editMode": "संपादन मोड",
+    "saveSpec": "विशिष्टता सहेजें"
+  },
+  "renders": {
+    "title": "फ़ोटोरियलिस्टिक रेंडर",
+    "generate": "रेंडर बनाएं",
+    "front": "सामने का दृश्य",
+    "back": "पीछे का दृश्य",
+    "side": "बगल का दृश्य",
+    "studio": "स्टूडियो दृश्य",
+    "generating": "रेंडर बन रहे हैं...",
+    "estimatedTime": "प्रत्येक दृश्य में 30-90 सेकंड लगते हैं"
+  },
+  "techpack": {
+    "title": "टेक पैक",
+    "generate": "टेक पैक बनाएं",
+    "download": "PDF डाउनलोड करें",
+    "bom": "सामग्री सूची",
+    "stitching": "सिलाई विशिष्टता",
+    "care": "देखभाल निर्देश",
+    "qc": "गुणवत्ता जांच"
+  },
+  "pattern": {
+    "title": "पैटर्न के टुकड़े",
+    "generate": "पैटर्न बनाएं",
+    "download": "DXF डाउनलोड करें",
+    "downloadSvg": "SVG डाउनलोड करें",
+    "seamAllowance": "सीम भत्ता",
+    "sizes": "साइज़"
+  },
+  "export": {
+    "title": "निर्यात और शेयर",
+    "selectArtifacts": "निर्यात करने के लिए चुनें",
+    "renders": "रेंडर (PNG)",
+    "techpack": "टेक पैक (PDF)",
+    "patterns": "पैटर्न (DXF + SVG)",
+    "flats": "तकनीकी फ्लैट (SVG)",
+    "downloadZip": "ZIP डाउनलोड करें",
+    "whatsapp": "WhatsApp पर शेयर करें",
+    "whatsappMessage": "मेरा KarigarJi फैशन डिज़ाइन देखें: "
+  },
+  "errors": {
+    "uploadFailed": "अपलोड विफल। कृपया पुनः प्रयास करें।",
+    "analysisFailed": "AI विश्लेषण विफल। कृपया पुनः प्रयास करें।",
+    "renderFailed": "रेंडर निर्माण विफल।",
+    "notFound": "नहीं मिला",
+    "unauthorized": "जारी रखने के लिए साइन इन करें"
+  }
+}

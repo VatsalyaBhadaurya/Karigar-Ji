@@ -1,0 +1,132 @@
+{
+  "common": {
+    "appName": "KarigarJi",
+    "tagline": "AI-Powered Fashion Design Platform",
+    "loading": "Loading...",
+    "error": "Something went wrong",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "download": "Download",
+    "share": "Share",
+    "back": "Back",
+    "next": "Next",
+    "generate": "Generate",
+    "regenerate": "Regenerate",
+    "viewAll": "View All"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "newProject": "New Project",
+    "settings": "Settings",
+    "signOut": "Sign Out"
+  },
+  "auth": {
+    "login": "Sign In",
+    "signup": "Create Account",
+    "email": "Email",
+    "password": "Password",
+    "fullName": "Full Name",
+    "forgotPassword": "Forgot password?",
+    "noAccount": "Don't have an account?",
+    "hasAccount": "Already have an account?",
+    "orContinueWith": "Or continue with",
+    "google": "Continue with Google",
+    "loginSuccess": "Welcome back!",
+    "signupSuccess": "Account created!"
+  },
+  "dashboard": {
+    "title": "My Projects",
+    "empty": "No projects yet",
+    "emptyDescription": "Upload a sketch to get started",
+    "createFirst": "Create Your First Project",
+    "newProject": "New Project",
+    "lastUpdated": "Last updated",
+    "status": {
+      "draft": "Draft",
+      "analyzing": "Analyzing",
+      "spec_ready": "Spec Ready",
+      "rendering": "Rendering",
+      "complete": "Complete",
+      "error": "Error"
+    }
+  },
+  "project": {
+    "name": "Project Name",
+    "description": "Description",
+    "create": "Create Project",
+    "upload": "Upload Sketch",
+    "uploadHint": "Drag & drop or click to upload. JPEG, PNG, WEBP, PDF up to 20MB",
+    "analyzing": "AI is analyzing your sketch...",
+    "steps": {
+      "upload": "Upload",
+      "spec": "Garment Spec",
+      "renders": "Renders",
+      "techpack": "Tech Pack",
+      "pattern": "Pattern",
+      "export": "Export"
+    }
+  },
+  "spec": {
+    "title": "Garment Specification",
+    "garmentType": "Garment Type",
+    "silhouette": "Silhouette",
+    "neckline": "Neckline",
+    "sleeveType": "Sleeve Type",
+    "fit": "Fit",
+    "colors": "Colors",
+    "fabric": "Suggested Fabric",
+    "measurements": "Measurements",
+    "embroidery": "Embroidery",
+    "constructionNotes": "Construction Notes",
+    "confidence": "AI Confidence",
+    "editMode": "Edit Mode",
+    "saveSpec": "Save Specification"
+  },
+  "renders": {
+    "title": "Photorealistic Renders",
+    "generate": "Generate Renders",
+    "front": "Front View",
+    "back": "Back View",
+    "side": "Side View",
+    "studio": "Studio View",
+    "generating": "Generating renders...",
+    "estimatedTime": "This takes 30–90 seconds per view"
+  },
+  "techpack": {
+    "title": "Tech Pack",
+    "generate": "Generate Tech Pack",
+    "download": "Download PDF",
+    "bom": "Bill of Materials",
+    "stitching": "Stitching Specs",
+    "care": "Care Instructions",
+    "qc": "QC Checkpoints"
+  },
+  "pattern": {
+    "title": "Pattern Pieces",
+    "generate": "Generate Patterns",
+    "download": "Download DXF",
+    "downloadSvg": "Download SVG",
+    "seamAllowance": "Seam Allowance",
+    "sizes": "Sizes"
+  },
+  "export": {
+    "title": "Export & Share",
+    "selectArtifacts": "Select artifacts to export",
+    "renders": "Renders (PNG)",
+    "techpack": "Tech Pack (PDF)",
+    "patterns": "Patterns (DXF + SVG)",
+    "flats": "Technical Flats (SVG)",
+    "downloadZip": "Download ZIP",
+    "whatsapp": "Share on WhatsApp",
+    "whatsappMessage": "Check out my KarigarJi fashion design: "
+  },
+  "errors": {
+    "uploadFailed": "Upload failed. Please try again.",
+    "analysisFailed": "AI analysis failed. Please try again.",
+    "renderFailed": "Render generation failed.",
+    "notFound": "Not found",
+    "unauthorized": "Please sign in to continue"
+  }
+}
