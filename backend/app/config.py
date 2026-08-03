@@ -27,6 +27,9 @@ class Settings(BaseSettings):
     LOG_LEVEL: str = "INFO"
     SECRET_KEY: str = "change-me-in-production"
 
+    # Dev helpers
+    USE_MOCK_AI: bool = False  # set true to bypass Gemini in local dev
+
     # Optional
     SENTRY_DSN: str = ""
 

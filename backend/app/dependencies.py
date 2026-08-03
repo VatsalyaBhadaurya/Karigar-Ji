@@ -13,6 +13,7 @@ from app.ai.base import BaseVisionProvider, BaseRenderProvider, BaseTextProvider
 from app.ai.prompt_loader import render_prompt
 from app.ai.providers.gemini import GeminiProvider
 from app.ai.providers.huggingface import HuggingFaceRenderProvider
+from app.ai.providers.mock import MockVisionProvider, MockTextProvider
 from app.config import settings
 from app.db.client import get_supabase
 from app.exceptions import UnauthorizedError
@@ -73,10 +74,14 @@ DB = Annotated[Client, Depends(get_db)]
 
 # ── AI providers ─────────────────────────────────────────────
 def get_vision_provider() -> BaseVisionProvider:
+    if settings.USE_MOCK_AI:
+        return MockVisionProvider()
     return GeminiProvider(api_key=settings.GEMINI_API_KEY, model=settings.GEMINI_MODEL)
 
 
 def get_text_provider() -> BaseTextProvider:
+    if settings.USE_MOCK_AI:
+        return MockTextProvider()
     return GeminiProvider(api_key=settings.GEMINI_API_KEY, model=settings.GEMINI_MODEL)
 
 
