@@ -10,7 +10,7 @@ from supabase import Client
 from app.ai.base import BaseVisionProvider, BaseRenderProvider, BaseTextProvider
 from app.ai.prompt_loader import render_prompt
 from app.ai.providers.gemini import GeminiProvider
-from app.ai.providers.fal_ai import FalAiProvider
+from app.ai.providers.huggingface import HuggingFaceRenderProvider
 from app.config import settings
 from app.db.client import get_supabase
 from app.exceptions import UnauthorizedError
@@ -55,4 +55,4 @@ def get_text_provider() -> BaseTextProvider:
 
 
 def get_render_provider() -> BaseRenderProvider:
-    return FalAiProvider(api_key=settings.FAL_AI_KEY, model=settings.FAL_FLUX_MODEL)
+    return HuggingFaceRenderProvider(hf_token=settings.HF_TOKEN, model=settings.HF_FLUX_MODEL)

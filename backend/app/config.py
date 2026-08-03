@@ -16,9 +16,9 @@ class Settings(BaseSettings):
     GEMINI_API_KEY: str = ""
     GEMINI_MODEL: str = "gemini-2.5-flash"
 
-    # AI: fal.ai
-    FAL_AI_KEY: str = ""
-    FAL_FLUX_MODEL: str = "fal-ai/flux-kontext/dev"
+    # AI: HuggingFace (FLUX.1-Kontext-dev)
+    HF_TOKEN: str = ""
+    HF_FLUX_MODEL: str = "black-forest-labs/FLUX.1-Kontext-dev"
 
     # App
     APP_ENV: Literal["dev", "staging", "prod"] = "dev"

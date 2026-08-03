@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+import base64
 import logging
+import time
 import uuid
 
+import httpx
 from supabase import Client
 
 from app.ai.base import BaseRenderProvider
@@ -13,6 +16,25 @@ from app.services.storage_service import StorageService
 logger = logging.getLogger(__name__)
 
 VIEW_TYPES = ["front", "back", "side_left", "studio_3q"]
+
+
+def _decode_render_result(result: str) -> tuple[bytes, str]:
+    """
+    Render providers may return either:
+    - A data URL:  "data:image/jpeg;base64,<b64>"  (HuggingFace)
+    - An HTTP URL: "https://..."                    (fal.ai, future providers)
+    Returns (image_bytes, mime_type).
+    """
+    if result.startswith("data:"):
+        header, b64 = result.split(",", 1)
+        mime = header.split(";")[0].replace("data:", "")
+        return base64.b64decode(b64), mime
+    # HTTP URL — download synchronously via httpx
+    with httpx.Client(timeout=60.0) as client:
+        resp = client.get(result)
+        resp.raise_for_status()
+        mime = resp.headers.get("content-type", "image/jpeg").split(";")[0]
+        return resp.content, mime
 
 
 class RenderService:
@@ -27,7 +49,6 @@ class RenderService:
         self._db = db
 
     def create_render_jobs(self, spec_id: str, project_id: str, user_id: str, views: list[str]) -> list[dict]:
-        """Create queued render rows for each requested view."""
         rows = []
         for view in views:
             row = {
@@ -43,7 +64,6 @@ class RenderService:
         return rows
 
     async def generate_render(self, render_id: str, user_id: str) -> dict:
-        """Generate a single render. Called per view after job creation."""
         render = (
             self._db.table("renders")
             .select("*, garment_specs(spec_json)")
@@ -60,42 +80,47 @@ class RenderService:
 
         self._db.table("renders").update({"render_status": "generating"}).eq("id", render_id).execute()
 
-        prompt = render_prompt(
-            "rendering/render_prompt.jinja2",
-            {"spec": spec_json, "view_type": view_type},
-        )
+        try:
+            prompt = render_prompt(
+                "rendering/render_prompt.jinja2",
+                {"spec": spec_json, "view_type": view_type},
+            )
 
-        import httpx, time
-        start = time.perf_counter()
-        image_url = await self._provider.generate_render(
-            prompt=prompt,
-            reference_image_url=None,
-            params={"steps": 28, "guidance_scale": 3.5},
-        )
+            t0 = time.perf_counter()
+            render_result = await self._provider.generate_render(
+                prompt=prompt,
+                reference_image_url=None,
+                params={"steps": 28, "guidance_scale": 3.5, "width": 768, "height": 1024},
+            )
 
-        # Download and re-upload to Supabase Storage for permanent storage
-        async with httpx.AsyncClient() as client:
-            resp = await client.get(image_url, timeout=60)
-            resp.raise_for_status()
-            image_bytes = resp.content
+            image_bytes, mime_type = _decode_render_result(render_result)
+            ext = "jpg" if "jpeg" in mime_type else mime_type.split("/")[-1]
 
-        storage_path, public_url = self._storage.upload_artifact(
-            file_bytes=image_bytes,
-            artifact_type=f"renders/{view_type}",
-            file_name=f"{render_id}.webp",
-            mime_type="image/webp",
-            user_id=user_id,
-            project_id=render["project_id"],
-        )
-        generation_ms = int((time.perf_counter() - start) * 1000)
+            storage_path, public_url = self._storage.upload_artifact(
+                file_bytes=image_bytes,
+                artifact_type=f"renders/{view_type}",
+                file_name=f"{render_id}.{ext}",
+                mime_type=mime_type,
+                user_id=user_id,
+                project_id=render["project_id"],
+            )
+            generation_ms = int((time.perf_counter() - t0) * 1000)
 
-        result = self._db.table("renders").update({
-            "render_status": "complete",
-            "storage_path": storage_path,
-            "public_url": public_url,
-            "prompt_used": prompt,
-            "generation_ms": generation_ms,
-        }).eq("id", render_id).execute()
+            result = self._db.table("renders").update({
+                "render_status": "complete",
+                "storage_path": storage_path,
+                "public_url": public_url,
+                "prompt_used": prompt,
+                "generation_ms": generation_ms,
+            }).eq("id", render_id).execute()
+
+        except Exception as exc:
+            logger.exception("Render generation failed for %s", render_id)
+            self._db.table("renders").update({
+                "render_status": "error",
+                "error_message": str(exc)[:500],
+            }).eq("id", render_id).execute()
+            raise
 
         return result.data[0]
 
