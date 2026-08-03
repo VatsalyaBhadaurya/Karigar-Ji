@@ -21,3 +21,7 @@ export function createRenders(
 export function getRender(renderId: string, token: string): Promise<ApiResult<Render>> {
   return apiRequest<Render>(`/render/${renderId}`, { method: "GET", token });
 }
+
+export function retryRender(renderId: string, token: string): Promise<ApiResult<Render>> {
+  return apiRequest<Render>(`/render/${renderId}/retry`, { method: "POST", token });
+}

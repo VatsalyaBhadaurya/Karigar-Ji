@@ -50,3 +50,23 @@ def get_render(
     user_id: str = current_user["sub"]
     storage_svc = StorageService(db)
     return RenderService(provider, storage_svc, db).get_render(render_id, user_id)
+
+
+@router.post("/{render_id}/retry")
+async def retry_render(
+    render_id: str,
+    background_tasks: BackgroundTasks,
+    current_user: CurrentUser = None,
+    db: Client = Depends(get_db),
+    provider: BaseRenderProvider = Depends(get_render_provider),
+):
+    """Re-queue a failed or stuck render (resets status to queued and fires background task)."""
+    user_id: str = current_user["sub"]
+    storage_svc = StorageService(db)
+    svc = RenderService(provider, storage_svc, db)
+
+    # Reset to queued so the background task can re-run it
+    db.table("renders").update({"render_status": "queued", "error_message": None}).eq("id", render_id).eq("user_id", user_id).execute()
+    render = svc.get_render(render_id, user_id)
+    background_tasks.add_task(svc.generate_render, render_id, user_id)
+    return render
