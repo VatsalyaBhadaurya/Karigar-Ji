@@ -1,0 +1,29 @@
+{% include "prompts/system_persona.jinja2" %}
+
+---
+
+TASK: Generate a complete, professional tech pack for the following garment specification.
+This will be printed and sent to manufacturers — it must be accurate and production-ready.
+
+GARMENT SPEC:
+{{ spec | tojson(indent=2) }}
+
+GENERATE:
+1. description — Professional garment description (2-3 sentences, factory-ready language)
+2. construction_details — Step-by-step construction sequence
+3. bom — Bill of Materials: every fabric, lining, interfacing, zipper, button, thread, label
+   Each BOM item: { item, quantity (with unit), specification (weight/grade/color) }
+4. measurements_chart — Size S/M/L/XL grid with all key measurements in cm
+5. stitching_specs — Stitch type, SPI (stitches per inch), thread tension for each seam type
+6. care_instructions — ISO care symbols descriptions + written instructions
+7. compliance_notes — Any relevant standards (OEKO-TEX, BIS, export requirements)
+8. wash_care — Single-line care instruction for label
+9. label_content — Brand label content template
+10. packaging_notes — Folding, tagging, poly-bag, carton specifications
+11. qc_checkpoints — Quality control inspection points (min 10 checkpoints)
+
+RULES:
+- Use industry-standard terminology
+- Be specific about measurements and specifications
+- No vague terms like "as required" — give actual values
+- Return ONLY valid JSON

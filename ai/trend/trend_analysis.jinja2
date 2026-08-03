@@ -1,0 +1,30 @@
+{% include "prompts/system_persona.jinja2" %}
+
+---
+
+TASK: Perform a trend analysis and market positioning report for this garment design.
+
+GARMENT SPEC:
+{{ spec | tojson(indent=2) }}
+
+ANALYZE against:
+- Current Indian fashion week collections (Lakme Fashion Week, India Couture Week)
+- Global fashion weeks (Paris, Milan, New York, London)
+- Major Indian e-commerce trends (Myntra, Ajio, Nykaa Fashion)
+- Pinterest and Instagram fashion trends (current season)
+- Luxury Indian designer brands (Sabyasachi, Manish Malhotra, Anita Dongre)
+- Fast fashion adaptations
+
+GENERATE:
+1. trend_score — 0.0 to 1.0 (1.0 = highly on-trend right now)
+2. novelty_score — 0.0 to 1.0 (1.0 = highly original, unseen design)
+3. market_positioning — "mass market" | "bridge" | "contemporary" | "luxury" | "couture"
+4. similar_styles_seen — List of comparable designs seen in market (designer/brand + season)
+5. seasonal_relevance — Which season(s) this design works for
+6. target_demographic — Primary and secondary target customer profile
+7. price_range_suggestion — Suggested retail price range in INR { currency: "INR", min, max }
+8. sustainability_notes — Any sustainability angle for this design
+9. suggestions — 3-5 actionable design suggestions to increase trend relevance
+10. reasoning — Brief explanation of the trend score
+
+Return ONLY valid JSON.

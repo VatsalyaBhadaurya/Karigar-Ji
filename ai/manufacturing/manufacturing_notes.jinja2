@@ -1,0 +1,24 @@
+{% include "prompts/system_persona.jinja2" %}
+
+---
+
+TASK: Generate complete manufacturing documentation for factory production.
+
+GARMENT SPEC:
+{{ spec | tojson(indent=2) }}
+
+GENERATE:
+1. recommended_machines — List each machine type needed (e.g. "Single-needle lockstitch", "Overlock 5-thread", "Button-hole machine")
+2. needle_specification — Needle type, size, point type for main fabric
+3. thread_specification — Thread type, count, color codes
+4. stitch_types — Each seam type: { seam_name, stitch_type, spi, tension }
+5. spi — Default stitches per inch for this garment
+6. seam_types — List of seam constructions used (plain, French, flat-fell, overlock, etc.)
+7. estimated_sam — Standard Allowed Minutes for production (be realistic)
+8. cutting_instructions — Fabric cutting sequence and grain line directions
+9. ironing_instructions — Temperature, steam setting, pressing sequence
+10. packaging_instructions — Folding method, tissue paper, hanger or flat
+11. quality_checklist — Minimum 12 QC inspection points
+
+Use Indian garment industry standards where applicable.
+Return ONLY valid JSON.

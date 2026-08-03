@@ -1,0 +1,35 @@
+{% include "prompts/system_persona.jinja2" %}
+
+---
+
+TASK: Generate a detailed technical flat drawing description for this garment specification.
+This description will be used by an SVG renderer — not drawn by AI directly.
+
+GARMENT SPEC:
+{{ spec | tojson(indent=2) }}
+
+DESCRIBE EACH ELEMENT for the {{ view_type }} view:
+
+For FRONT view, describe:
+1. Overall outline and proportions (width at shoulder, chest, waist, hip, hem)
+2. Neckline shape (exact curve type, depth)
+3. Each panel boundary (seam lines)
+4. Dart positions and directions
+5. Pocket outlines and stitch lines
+6. Collar/lapel shape
+7. Sleeve outline and seam
+8. Closure position and hardware
+9. Embroidery placement boxes
+10. Hem type
+
+For BACK view, describe:
+1. Back outline
+2. Back seaming / yoke lines
+3. Closure on back if any
+4. Back dart positions
+
+OUTPUT: Return JSON with "panels" array where each panel has:
+- name: panel identifier
+- type: "outline" | "seam_line" | "dart" | "pocket" | "embroidery_zone" | "stitch_line"
+- description: human-readable description for the SVG renderer
+- approximate_coordinates: relative positions as percentages (0-100) of bounding box

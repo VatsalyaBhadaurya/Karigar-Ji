@@ -1,0 +1,28 @@
+{% include "prompts/system_persona.jinja2" %}
+
+---
+
+TASK: Analyze the provided garment sketch and extract a complete, structured garment specification.
+
+INPUT CONTEXT:
+- Source type: {{ source_type }}  {# 'hand_drawn' | 'cad' | 'photo' #}
+- Designer notes: {{ user_notes }}
+- Target market: {{ target_market }}
+
+EXTRACTION RULES:
+1. garment_type: Be specific — use terms like "anarkali_kurta", "shirt_dress", "blazer", "palazzo_pants", "saree_blouse", "lehenga_skirt"
+2. silhouette: Choose from A-line, straight, flared, fitted, oversized, peplum, mermaid, shift, wrap
+3. panels: List every distinct fabric panel visible (e.g. ["bodice_front", "bodice_back", "yoke", "sleeve_left", "sleeve_right"])
+4. measurements: Estimate proportions if visible in sketch; leave null if not determinable
+5. colors: Use descriptive names AND hex codes where identifiable
+6. embroidery: Set present=true only if decorative embellishment is clearly visible
+7. construction_notes: Include every seam, dart, or construction detail you can observe
+8. suggested_fabric: Recommend based on the garment's weight, drape, and construction requirements
+9. seam_allowance: Default "1.5cm" unless sketch indicates otherwise
+10. metadata.confidence: 0.9+ if sketch is clear, 0.7-0.9 if partially visible, below 0.7 if ambiguous
+
+CRITICAL:
+- Return ONLY valid JSON matching the schema
+- Do not add any text outside the JSON object
+- Every field you are uncertain about should have a lower metadata.confidence value
+- Never fabricate measurements — use null if not visible

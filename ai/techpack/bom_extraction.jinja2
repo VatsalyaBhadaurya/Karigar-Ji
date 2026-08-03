@@ -1,0 +1,18 @@
+{% include "prompts/system_persona.jinja2" %}
+
+---
+
+TASK: Extract a detailed Bill of Materials from this garment specification.
+
+GARMENT SPEC:
+{{ spec | tojson(indent=2) }}
+
+For each material required:
+- item: material name
+- category: "fabric" | "lining" | "interfacing" | "notions" | "trims" | "labels" | "packaging"
+- quantity: amount with unit (e.g. "2.5 meters", "12 pieces", "1 roll")
+- specification: detailed spec (e.g. "100% Cotton, 60s count, 114cm wide, pre-shrunk")
+- color: color name or code
+- estimated_cost_inr: rough cost estimate in Indian Rupees (optional)
+
+Return as JSON array.

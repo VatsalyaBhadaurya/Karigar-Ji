@@ -1,0 +1,29 @@
+{% set g = spec %}
+Professional fashion photography, {{ view_type }} view.
+
+Garment: {{ g.garment_type | replace('_', ' ') | title }}, {{ g.silhouette }} silhouette, {{ g.fit }} fit.
+{% if g.neckline %}Neckline: {{ g.neckline }}.{% endif %}
+{% if g.sleeve_type %}Sleeves: {{ g.sleeve_type }}.{% endif %}
+{% if g.colors %}Colors: {{ g.colors | join(', ') }}.{% endif %}
+{% if g.suggested_fabric %}Fabric: {{ g.suggested_fabric | join(', ') }}.{% endif %}
+{% if g.embroidery and g.embroidery.present %}Embroidery: {{ g.embroidery.technique }} on {{ g.embroidery.placement | join(', ') }}.{% endif %}
+{% if g.trims %}Trims: {{ g.trims | join(', ') }}.{% endif %}
+
+Photography style:
+{% if view_type == 'front' %}
+Full-length front view on a model, neutral studio background, soft diffused lighting, high fashion editorial.
+{% elif view_type == 'back' %}
+Full-length rear view, showing back construction and seaming, neutral studio background.
+{% elif view_type == 'side_left' %}
+Side profile view, showing silhouette and sleeve construction, neutral background.
+{% elif view_type == 'studio_3q' %}
+Three-quarter editorial view, dramatic studio lighting, fashion week aesthetic.
+{% endif %}
+
+CRITICAL REQUIREMENTS:
+- Preserve EXACT silhouette: {{ g.silhouette }}
+- Preserve EXACT colors: {{ g.colors | join(', ') }}
+- Never add design elements not present in the specification
+- No background clutter, clean studio setting
+- Photorealistic, 8K quality, sharp focus
+- Model is anonymous (no recognizable face)
