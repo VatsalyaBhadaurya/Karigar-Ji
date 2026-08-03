@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import logging
+from functools import lru_cache
 from typing import Annotated
 
+import httpx
 from fastapi import Depends, Header
 from jose import JWTError, jwt
 from supabase import Client
@@ -24,10 +26,34 @@ def get_db() -> Client:
 
 
 # ── Auth ────────────────────────────────────────────────────
+@lru_cache(maxsize=1)
+def _get_jwks() -> dict:
+    """Fetch and cache Supabase's JWKS for ES256 token verification."""
+    url = f"{settings.SUPABASE_URL}/auth/v1/.well-known/jwks.json"
+    resp = httpx.get(url, timeout=10.0)
+    resp.raise_for_status()
+    return resp.json()
+
+
 def get_current_user(authorization: Annotated[str | None, Header()] = None) -> dict:
     if not authorization or not authorization.startswith("Bearer "):
         raise UnauthorizedError()
     token = authorization.removeprefix("Bearer ")
+
+    # Try ES256 via JWKS (new Supabase auth — default since 2024)
+    try:
+        jwks = _get_jwks()
+        payload = jwt.decode(
+            token,
+            jwks,
+            algorithms=["ES256", "RS256"],
+            options={"verify_aud": False},
+        )
+        return payload
+    except JWTError:
+        pass
+
+    # Fallback: HS256 with the project JWT secret (legacy / self-hosted)
     try:
         payload = jwt.decode(
             token,
