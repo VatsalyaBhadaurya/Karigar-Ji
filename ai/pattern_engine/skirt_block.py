@@ -35,16 +35,18 @@ def draft_skirt(
         Point(0, length),
     ]
 
+    fx = hem_w / 2
     front = PatternPiece(
         name="skirt_front",
         points=apply_seam_allowance(front_points, seam_allowance),
-        grain_line=(Point(hem_w / 2, length * 0.1), Point(hem_w / 2, length * 0.9)),
-        labels=[(Point(hem_w / 2, length / 2), "SKIRT FRONT\nCut 1 on fold")],
+        grain_line=(Point(fx, length * 0.1), Point(fx, length * 0.9)),
+        labels=[(Point(fx, length * 0.45), "SKIRT\nFRONT\nCut 1\non fold")],
     )
+    bx = hem_w / 2
     back = PatternPiece(
         name="skirt_back",
         points=apply_seam_allowance(back_points, seam_allowance),
-        grain_line=(Point(hem_w / 2, length * 0.1), Point(hem_w / 2, length * 0.9)),
-        labels=[(Point(hem_w / 2, length / 2), "SKIRT BACK\nCut 1 on fold")],
+        grain_line=(Point(bx, length * 0.1), Point(bx, length * 0.9)),
+        labels=[(Point(bx, length * 0.45), "SKIRT\nBACK\nCut 1\non fold")],
     )
     return [front, back]

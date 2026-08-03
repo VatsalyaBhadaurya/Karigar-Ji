@@ -32,86 +32,118 @@ _DEFAULTS = {
     "length": 60.0, "sleeve_length": 58.0, "shoulder_width": 38.0,
 }
 
-_SCALE = 2.5  # pixels per cm in SVG
+_SCALE = 4.0  # pixels per cm in SVG
+_GAP = 50     # gap between pieces (px)
+_MARGIN = 36  # canvas margin (px)
 
 
 def _cm(value: float | None, key: str) -> float:
-    """Use value if meaningful, otherwise default."""
     return value if (value and value > 0) else _DEFAULTS[key]
 
 
-def _piece_to_svg_path(piece: PatternPiece, offset_x: float = 0, offset_y: float = 0) -> str:
-    pts = piece.points
-    if not pts:
+def _build_path(points: list[Point], ox: float, oy: float) -> str:
+    if not points:
         return ""
-    scale = _SCALE
-    d = f"M {pts[0].x * scale + offset_x:.1f},{pts[0].y * scale + offset_y:.1f}"
-    for p in pts[1:]:
-        d += f" L {p.x * scale + offset_x:.1f},{p.y * scale + offset_y:.1f}"
-    d += " Z"
-    return d
+    s = _SCALE
+    d = f"M {points[0].x*s+ox:.1f},{points[0].y*s+oy:.1f}"
+    for p in points[1:]:
+        d += f" L {p.x*s+ox:.1f},{p.y*s+oy:.1f}"
+    return d + " Z"
 
 
 def _render_svg(pieces: list[PatternPiece]) -> bytes:
-    scale = _SCALE
-    margin = 20
+    s = _SCALE
+    margin = _MARGIN
 
-    # Compute canvas size from all points
-    all_x = [p.x * scale for piece in pieces for p in piece.points]
-    all_y = [p.y * scale for piece in pieces for p in piece.points]
-    if not all_x:
+    if not any(p.points for p in pieces):
         return b"<svg></svg>"
 
-    # Lay out pieces side by side with gaps
-    svg_parts = []
+    svg_parts: list[str] = []
     x_cursor = margin
+
+    # Track tallest piece for canvas height
+    max_piece_h = 0.0
 
     for piece in pieces:
         if not piece.points:
             continue
-        piece_w = (max(p.x for p in piece.points) - min(p.x for p in piece.points)) * scale
-        piece_h = (max(p.y for p in piece.points) - min(p.y for p in piece.points)) * scale
-        min_px = min(p.x for p in piece.points) * scale
-        min_py = min(p.y for p in piece.points) * scale
-        ox = x_cursor - min_px
-        oy = margin - min_py
 
-        path_d = _piece_to_svg_path(piece, ox, oy)
-        svg_parts.append(f'<path d="{path_d}" fill="#1e293b" stroke="#94a3b8" stroke-width="1.5"/>')
+        xs = [p.x for p in piece.points]
+        ys = [p.y for p in piece.points]
+        min_px, max_px = min(xs), max(xs)
+        min_py, max_py = min(ys), max(ys)
+        piece_w = (max_px - min_px) * s
+        piece_h = (max_py - min_py) * s
+        max_piece_h = max(max_piece_h, piece_h)
 
-        # Grain line
+        ox = x_cursor - min_px * s
+        oy = margin - min_py * s
+
+        # Piece fill + stroke
+        path_d = _build_path(piece.points, ox, oy)
+        svg_parts.append(
+            f'<path d="{path_d}" fill="#1e293b" stroke="#94a3b8" stroke-width="2" '
+            f'stroke-linejoin="round"/>'
+        )
+
+        # Grain line with arrows at both ends
         if piece.grain_line:
             g1, g2 = piece.grain_line
+            g1x, g1y = g1.x*s+ox, g1.y*s+oy
+            g2x, g2y = g2.x*s+ox, g2.y*s+oy
             svg_parts.append(
-                f'<line x1="{g1.x*scale+ox:.1f}" y1="{g1.y*scale+oy:.1f}" '
-                f'x2="{g2.x*scale+ox:.1f}" y2="{g2.y*scale+oy:.1f}" '
-                f'stroke="#60a5fa" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow)"/>'
+                f'<line x1="{g1x:.1f}" y1="{g1y:.1f}" x2="{g2x:.1f}" y2="{g2y:.1f}" '
+                f'stroke="#60a5fa" stroke-width="1.5" stroke-dasharray="5,3" '
+                f'marker-start="url(#arrow-r)" marker-end="url(#arrow)"/>'
             )
 
-        # Label
+        # Labels — each line rendered as a <tspan> with semi-transparent backdrop
         for lp, text in (piece.labels or []):
-            lx, ly = lp.x * scale + ox, lp.y * scale + oy
-            for i, line in enumerate(text.split("\n")):
+            lx = lp.x * s + ox
+            ly = lp.y * s + oy
+            lines = text.split("\n")
+            line_h = 15
+            block_h = len(lines) * line_h + 6
+            block_w = max(len(ln) for ln in lines) * 7.5 + 12
+
+            # Background pill
+            svg_parts.append(
+                f'<rect x="{lx - block_w/2:.1f}" y="{ly - line_h:.1f}" '
+                f'width="{block_w:.1f}" height="{block_h:.1f}" '
+                f'rx="4" fill="#0f172a" fill-opacity="0.75"/>'
+            )
+            # Text lines
+            for i, line in enumerate(lines):
+                ty = ly + i * line_h
+                weight = "bold" if i == 0 else "normal"
                 svg_parts.append(
-                    f'<text x="{lx:.1f}" y="{ly + i*14:.1f}" '
-                    f'fill="#e2e8f0" font-size="10" text-anchor="middle" '
-                    f'font-family="monospace">{line}</text>'
+                    f'<text x="{lx:.1f}" y="{ty:.1f}" fill="#e2e8f0" '
+                    f'font-size="11" font-weight="{weight}" '
+                    f'text-anchor="middle" font-family="monospace">{line}</text>'
                 )
 
-        x_cursor += piece_w + 30
+        x_cursor += piece_w + _GAP
 
-    total_w = x_cursor + margin
-    total_h = max((max(p.y for p in piece.points) - min(p.y for p in piece.points)) * scale for piece in pieces if piece.points) + margin * 2
+    total_w = x_cursor - _GAP + margin
+    total_h = max_piece_h + margin * 2
 
-    svg = f"""<svg xmlns="http://www.w3.org/2000/svg" width="{total_w:.0f}" height="{total_h:.0f}" viewBox="0 0 {total_w:.0f} {total_h:.0f}">
-  <defs>
-    <marker id="arrow" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
-      <path d="M0,0 L0,6 L6,3 z" fill="#60a5fa"/>
-    </marker>
-  </defs>
-  <rect width="100%" height="100%" fill="#0f172a"/>
-  {''.join(svg_parts)}
-</svg>"""
+    svg = (
+        f'<svg xmlns="http://www.w3.org/2000/svg" '
+        f'width="{total_w:.0f}" height="{total_h:.0f}" '
+        f'viewBox="0 0 {total_w:.0f} {total_h:.0f}">\n'
+        f'  <defs>\n'
+        f'    <marker id="arrow" markerWidth="7" markerHeight="7" refX="3.5" refY="3.5" orient="auto">\n'
+        f'      <path d="M0,0 L0,7 L7,3.5 z" fill="#60a5fa"/>\n'
+        f'    </marker>\n'
+        f'    <marker id="arrow-r" markerWidth="7" markerHeight="7" refX="3.5" refY="3.5" orient="auto-start-reverse">\n'
+        f'      <path d="M0,0 L0,7 L7,3.5 z" fill="#60a5fa"/>\n'
+        f'    </marker>\n'
+        f'  </defs>\n'
+        f'  <rect width="100%" height="100%" fill="#0f172a"/>\n'
+        + "  " + "\n  ".join(svg_parts) + "\n"
+        f'</svg>'
+    )
+    return svg.encode()
     return svg.encode()
 
 
