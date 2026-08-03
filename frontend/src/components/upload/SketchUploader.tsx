@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { uploadSketch } from "@/lib/api/upload";
 import { analyzeSketch } from "@/lib/api/vision";
+import { getProject } from "@/lib/api/project";
 import { useProjectStore } from "@/lib/stores/projectStore";
 import { ProjectFull } from "@/lib/types";
 import { Button } from "@/components/ui/button";
@@ -15,7 +16,7 @@ import { cn } from "@/lib/utils";
 export function SketchUploader({ project }: { project: ProjectFull }) {
   const t = useTranslations("project");
   const { token } = useAuth();
-  const { setCurrentSpecRow, setActiveStep } = useProjectStore();
+  const { setCurrentSpecRow, setProject, setActiveStep } = useProjectStore();
   const inputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [status, setStatus] = useState<"idle" | "uploading" | "analyzing" | "done" | "error">("idle");
@@ -44,6 +45,8 @@ export function SketchUploader({ project }: { project: ProjectFull }) {
     }
 
     setCurrentSpecRow(specResult.data!);
+    // Refresh project so garment_specs is current (enables save after page navigation)
+    getProject(project.id, token).then((r) => { if (r.data) setProject(r.data); });
     setStatus("done");
     setTimeout(() => setActiveStep("spec"), 1500);
   };

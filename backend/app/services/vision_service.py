@@ -111,7 +111,11 @@ class VisionService:
     def update_spec(self, spec_id: str, user_id: str, updates: dict) -> dict:
         # Re-validate the spec_json if provided
         if "spec_json" in updates:
-            validated = GarmentSpec.model_validate(updates["spec_json"])
+            try:
+                validated = GarmentSpec.model_validate(updates["spec_json"])
+            except Exception as exc:
+                from app.exceptions import ValidationError as KValidationError
+                raise KValidationError(f"Invalid spec: {exc}") from exc
             updates["spec_json"] = validated.model_dump(mode="json")
             updates.update({
                 "garment_type": validated.garment_type,
